@@ -20,7 +20,7 @@ export class CommentAnalyzer {
        
         const file_data = fs.readFileSync(`${this.dir}/${this.file}`, { encoding: 'utf8', flag: 'r' }).toString().replace(/\r\n/g, '\n').split('\n');
         for (let line of file_data) {
-            line = line.toLowerCase().trim();
+            line = line.toLowerCase();
 
             //  determine which look ups to do and add one to the right key
             if (line.length < 15) {
@@ -43,16 +43,3 @@ export class CommentAnalyzer {
 
     }
 }
-// try {
-//     console.time(workerData.file);
-//     const comments = new CommentAnalyzer(workerData.file);
-//     const results = comments.analyze();
-   
-//     const sendBack = {'successState': true, result: results};
-//     parentPort?.postMessage(sendBack);
-//     console.timeEnd(workerData.file);
-// } catch(error){
-//     console.warn(`${workerData.file} has failed ${error}`)
-//     const sendBack = {'successState': false};
-//     parentPort?.postMessage(sendBack);
-// }
