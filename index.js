@@ -3,10 +3,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const fs = require('fs');
 const path = require('path');
 const CommentAnalyzer_1 = require("./CommentAnalyzer");
-const forks = require('os').cpus().length;
+const cpus = require('os').cpus().length;
 const cluster = require('cluster');
 const dir = './docs';
-// let targetFiles: string[] = [];
 let shownOutput = false;
 let results = {
     "SHORTER_THAN_15": 0,
@@ -17,15 +16,14 @@ let results = {
 };
 let counter = 0;
 /**
- * @fuction main
+ * @function main
  * @description function to be called by each worker, split reading of files and calling of analyzer
  * @returns array with list results
  */
 const main = () => {
     const targetFiles = fs.readdirSync(dir).filter((value) => value.endsWith('.txt'));
     //split files to run on different cpu's 
-    const clusterFiles = targetFiles.filter((_value, index) => index % forks === cluster.worker.id - 1);
-    console.log(clusterFiles.length);
+    const clusterFiles = targetFiles.filter((_value, index) => index % cpus === cluster.worker.id - 1);
     let result = [];
     for (let file of clusterFiles) {
         const commentAnalyzer = new CommentAnalyzer_1.CommentAnalyzer(file);
@@ -33,6 +31,11 @@ const main = () => {
     }
     return { 'result': result, 'fileLength': targetFiles.length };
 };
+/**
+ * @function calculateResults
+ * @param childResults
+ * @description function to handle the results from each worker and print result
+ */
 const calculateResults = (childResults) => {
     {
         if (childResults.result) {
@@ -55,7 +58,7 @@ const calculateResults = (childResults) => {
 };
 // check if main process
 if (cluster.isMaster) {
-    for (let i = 0; i < forks; i++) {
+    for (let i = 0; i < cpus; i++) {
         cluster.fork();
     }
     for (const id in cluster.workers) {
@@ -72,6 +75,4 @@ else {
             process.send({ 'result': mainResult });
         }
     }
-    //stop process
-    // process.exit(0);
 }
