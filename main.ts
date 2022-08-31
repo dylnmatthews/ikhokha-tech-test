@@ -19,9 +19,9 @@ let counter = 0;
 const main = () => {
   const targetFiles = fs.readdirSync(dir).filter((value: string) => value.endsWith('.txt'));
   //split files to run on different cpu's 
-  const clusterFiles = targetFiles.filter((_value: string, index: number) => index % cpus === cluster.worker.id - 1);
+  const filesByCPU = targetFiles.filter((_value: string, index: number) => index % cpus === cluster.worker.id - 1);
   let result: any[] = [];
-  for (let file of clusterFiles) {
+  for (let file of filesByCPU) {
     const commentAnalyzer = new CommentAnalyzer(file);
     commentAnalyzer.setConfig(config)
     result.push(commentAnalyzer.analyze());
