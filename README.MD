@@ -19,7 +19,7 @@ By having it in a docker container, it will have the same environment as I had r
 To run it in docker, you will require having docker desktop installed and docker compose.
 
 
-run 
+Run with docker
 ```
 docker-compose up
 ```
