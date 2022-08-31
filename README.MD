@@ -17,3 +17,9 @@ As the program runs it checks how many CPU's are available to run the readings o
 I have also decided to have it run in docker container, incase your node version isn't the same as mine. I am running 18.8.0.
 By having it in a docker container, it will have the same environment as I had ran, therefore the same expected results will occur.
 To run it in docker, you will require having docker desktop installed and docker compose.
+
+
+run 
+```
+docker-compose up
+```
