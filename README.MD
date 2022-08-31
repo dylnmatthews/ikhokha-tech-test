@@ -23,3 +23,12 @@ run
 ```
 docker-compose up
 ```
+
+Running without docker:
+
+```
+npx tsc
+```
+```
+node main.js
+```

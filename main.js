@@ -2,9 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const fs = require('fs');
 const path = require('path');
-const CommentAnalyzer_1 = require("./CommentAnalyzer");
 const cpus = require('os').cpus().length;
 const cluster = require('cluster');
+const CommentAnalyzer_1 = require("./CommentAnalyzer");
 const dir = './docs';
 const config = fs.readFileSync('config.json', { encoding: 'utf8', flag: 'r' }).toString();
 let shownOutput = false;
@@ -36,24 +36,16 @@ const calculateResults = (childResults) => {
     {
         if (childResults.result) {
             const fileLength = childResults.result.fileLength;
-            // console.log(childResults.result.result)
+            //loops through each child by thread and amend key values 
             for (const child of childResults.result.result) {
                 counter++;
                 for (const [key, value] of Object.entries(child)) {
                     results[key] += value;
                 }
             }
-            // for (let result of childResults.result.result) {
-            //   counter++;
-            //   results['SHORTER_THAN_15'] += result['SHORTER_THAN_15'];
-            //   results['MOVER_MENTIONS'] += result['MOVER_MENTIONS'];
-            //   results['SHAKER_MENTIONS'] += result['SHAKER_MENTIONS'];
-            //   results['QUESTIONS'] += result['QUESTIONS'];
-            //   results['SPAM'] += result['SPAM'];
-            // }
+            //determine if every file has been read and that the output hasn't occurred because of concurrent threads being run
             if (counter == fileLength && !shownOutput) {
                 shownOutput = true;
-                // console.table(test)
                 console.log("RESULTS\n\=======");
                 for (const [key, value] of Object.entries(results)) {
                     console.log(`${key}: ${value}`);

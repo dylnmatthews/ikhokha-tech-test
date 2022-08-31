@@ -43,9 +43,15 @@ class CommentAnalyzer {
     setConfig(config) {
         this.config = JSON.parse(config);
         for (let key in this.config) {
+            // initializes results so each key starts at 0
             this.results[key] = 0;
         }
     }
+    /**
+     * @function analyze
+     * @description function to analyze the file which it reads, does the analysis based off the config.json regex
+     * @returns results
+     */
     analyze() {
         var _a;
         const keys = Object.keys(this.config);
@@ -53,6 +59,7 @@ class CommentAnalyzer {
         for (let line of file_data) {
             line = line.toLowerCase();
             for (let key of keys) {
+                // converts regex string from config.json to a regex expression
                 const regex = new RegExp(this.config[key]);
                 this.results[key] += ((_a = line.match(regex)) === null || _a === void 0 ? void 0 : _a.length) || 0;
             }
