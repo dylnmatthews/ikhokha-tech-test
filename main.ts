@@ -1,20 +1,14 @@
 const fs = require('fs')
 const path = require('path');
-import { CommentAnalyzer } from './CommentAnalyzer';
 const cpus = require('os').cpus().length
 const cluster = require('cluster');
+import { CommentAnalyzer } from './CommentAnalyzer';
 
 
 const dir = './docs'
+const config = fs.readFileSync('config.json', { encoding: 'utf8', flag: 'r' }).toString();
 let shownOutput = false;
-
-let results = {
-  "SHORTER_THAN_15": 0,
-  "MOVER_MENTIONS": 0,
-  "SHAKER_MENTIONS": 0,
-  "QUESTIONS": 0,
-  "SPAM": 0
-}
+let results = JSON.parse(config);
 let counter = 0;
 
 /**
@@ -29,6 +23,7 @@ const main = () => {
   let result: any[] = [];
   for (let file of clusterFiles) {
     const commentAnalyzer = new CommentAnalyzer(file);
+    commentAnalyzer.setConfig(config)
     result.push(commentAnalyzer.analyze());
   }
   return { 'result': result, 'fileLength': targetFiles.length }
@@ -46,18 +41,21 @@ const calculateResults = (childResults: any) => {
     if (childResults.result) {
 
       const fileLength = childResults.result.fileLength;
-
-      for (let result of childResults.result.result) {
+      //loops through each child by thread and amend key values 
+      for (const child of childResults.result.result){
         counter++;
-        results['SHORTER_THAN_15'] += result['SHORTER_THAN_15'];
-        results['MOVER_MENTIONS'] += result['MOVER_MENTIONS'];
-        results['SHAKER_MENTIONS'] += result['SHAKER_MENTIONS'];
-        results['QUESTIONS'] += result['QUESTIONS'];
-        results['SPAM'] += result['SPAM'];
+        for (const [key, value] of Object.entries(child)) {
+          results[key] += value;
+        }
       }
+
+      //determine if every file has been read and that the output hasn't occurred because of concurrent threads being run
       if (counter == fileLength && !shownOutput) {
         shownOutput = true;
-        console.table(results)
+        console.log("RESULTS\n\=======");
+        for (const [key, value] of Object.entries(results)) {
+          console.log(`${key}: ${value}`);
+        }
         process.exit(0);
       }
     }
@@ -74,7 +72,9 @@ if (cluster.isMaster) {
     // wait for worker to send message back to the main process to process the results
     cluster.workers[id].on('message', calculateResults);
   }
-
+  for (let key in results) {
+    results[key] = 0;
+  }
 
 } else {
   // run cluster processes

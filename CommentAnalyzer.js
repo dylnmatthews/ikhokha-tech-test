@@ -25,40 +25,39 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CommentAnalyzer = void 0;
 const fs = __importStar(require("fs"));
+/**
+ * @class CommentAnalyzer
+ * @description class to handle the analyzing for the comments based off the config.json file.
+ */
 class CommentAnalyzer {
     constructor(file) {
         this.dir = './docs';
+        this.results = {};
         this.file = file;
     }
+    /**
+     * @function setConfig
+     * @param config
+     * @description function to set the config which could
+     */
+    setConfig(config) {
+        this.config = JSON.parse(config);
+        for (let key in this.config) {
+            this.results[key] = 0;
+        }
+    }
     analyze() {
-        let results = {
-            "SHORTER_THAN_15": 0,
-            "MOVER_MENTIONS": 0,
-            "SHAKER_MENTIONS": 0,
-            "QUESTIONS": 0,
-            "SPAM": 0
-        };
+        var _a;
+        const keys = Object.keys(this.config);
         const file_data = fs.readFileSync(`${this.dir}/${this.file}`, { encoding: 'utf8', flag: 'r' }).toString().replace(/\r\n/g, '\n').split('\n');
         for (let line of file_data) {
             line = line.toLowerCase();
-            //  determine which look ups to do and add one to the right key
-            if (line.length < 15) {
-                results['SHORTER_THAN_15'] += 1;
-            }
-            if (line.includes('mover')) {
-                results['MOVER_MENTIONS'] += line.split('mover').length - 1;
-            }
-            if (line.includes('shaker')) {
-                results['SHAKER_MENTIONS'] += line.split('shaker').length - 1;
-            }
-            if (line.includes('?')) {
-                results['QUESTIONS'] += line.split('?').length - 1;
-            }
-            if (line.includes('https://') || line.includes('http://') || line.includes('www.')) {
-                results['SPAM'] += 1;
+            for (let key of keys) {
+                const regex = new RegExp(this.config[key]);
+                this.results[key] += ((_a = line.match(regex)) === null || _a === void 0 ? void 0 : _a.length) || 0;
             }
         }
-        return results;
+        return this.results;
     }
 }
 exports.CommentAnalyzer = CommentAnalyzer;

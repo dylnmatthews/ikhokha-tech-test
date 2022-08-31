@@ -1,45 +1,52 @@
 import * as fs from 'fs';
-import { parentPort, workerData} from 'worker_threads';
+
+
+/**
+ * @class CommentAnalyzer
+ * @description class to handle the analyzing for the comments based off the config.json file.
+ */
 export class CommentAnalyzer {
 
     private file: string;
     private dir = './docs';
+    private config:any;
+    private results:any = {};
 
     constructor(file: string) {
         this.file = file;
     }
 
+    /**
+     * @function setConfig
+     * @param config
+     * @description function to set the config which could 
+     */
+    setConfig(config:string){
+        this.config = JSON.parse(config);
+        for (let key in this.config) {
+            // initializes results so each key starts at 0
+            this.results[key] = 0;
+          }
+    }
+
+    /**
+     * @function analyze
+     * @description function to analyze the file which it reads, does the analysis based off the config.json regex
+     * @returns results
+     */
     analyze() {
-        let results = {
-            "SHORTER_THAN_15": 0,
-            "MOVER_MENTIONS": 0,
-            "SHAKER_MENTIONS": 0,
-            "QUESTIONS": 0,
-            "SPAM": 0
-        }
-       
+       const keys = Object.keys(this.config)
         const file_data = fs.readFileSync(`${this.dir}/${this.file}`, { encoding: 'utf8', flag: 'r' }).toString().replace(/\r\n/g, '\n').split('\n');
         for (let line of file_data) {
             line = line.toLowerCase();
+            for (let key of keys){
+                // converts regex string from config.json to a regex expression
+                const regex = new RegExp(this.config[key]);
+                this.results[key] += line.match(regex)?.length || 0;
+            }
 
-            //  determine which look ups to do and add one to the right key
-            if (line.length < 15) {
-                results['SHORTER_THAN_15'] += 1
-            }
-            if (line.includes('mover')) {
-                results['MOVER_MENTIONS'] += line.split('mover').length - 1
-            }
-            if (line.includes('shaker')) {
-                results['SHAKER_MENTIONS'] += line.split('shaker').length - 1
-            }
-            if (line.includes('?')) {
-                results['QUESTIONS'] += line.split('?').length - 1
-            }
-            if (line.includes('https://') || line.includes('http://') || line.includes('www.')) {
-                results['SPAM'] += 1
-            }
         }
-        return results
+        return this.results
 
     }
 }

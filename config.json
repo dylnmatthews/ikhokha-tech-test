@@ -1,0 +1,7 @@
+{
+    "SHORTER_THAN_15" : "^.{0,14}$",
+    "MOVER_MENTIONS" : "(?:mover)",
+    "SHAKER_MENTIONS" : "(?:shaker)",
+    "QUESTIONS" : "(?:\\?)",
+    "SPAM": "(?:www)|(?:http)|(?:https)"
+}

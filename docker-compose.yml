@@ -3,6 +3,6 @@ version: "3.2"
 services:
   dylan-matthews-techtest:
     build: .
-    command: bash -c "npx tsc && node index.js"
+    command: bash -c "npx tsc && node main.js"
     volumes:
       - .:/techtest
