@@ -1,69 +1,58 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CommentAnalyzer = void 0;
-const fs = __importStar(require("fs"));
-/**
- * @class CommentAnalyzer
- * @description class to handle the analyzing for the comments based off the config.json file.
- */
 class CommentAnalyzer {
-    constructor(file) {
-        this.dir = './docs';
+    constructor() {
         this.results = {};
-        this.file = file;
+        this.line = "";
     }
     /**
-     * @function setConfig
-     * @param config
-     * @description function to set the config which could
+     * @function setLine
+     * @param line:string
+     * @description function to set the line for the class to analyze
      */
-    setConfig(config) {
-        this.config = JSON.parse(config);
-        for (let key in this.config) {
-            // initializes results so each key starts at 0
-            this.results[key] = 0;
+    setLine(line) {
+        this.line = line.toLowerCase();
+    }
+    /**
+     * @function calculateResults
+     * @param attribute:string
+     * @description function to set the attribute and set the result of it
+     */
+    calculateResults(attribute) {
+        if (!Object.keys(this.results).includes(attribute)) {
+            // initialize attribute if it doesnt exist yet  
+            this.results[attribute] = 0;
+        }
+        this.results[attribute] += 1;
+    }
+    /**
+     * @function determineShorterThan
+     * @param length:number
+     * @param attribute:string
+     * @description to check of the length of the line is shorted than required amount
+     */
+    determineShorterThan(length, attribute) {
+        if (this.line.length < length) {
+            this.calculateResults(attribute);
         }
     }
     /**
-     * @function analyze
-     * @description function to analyze the file which it reads, does the analysis based off the config.json regex
-     * @returns results
+     * @function determineText
+     * @param phrase:string
+     * @param attribute:string
+     * @description function to check if a phrase is part of the line
      */
-    analyze() {
-        var _a;
-        const keys = Object.keys(this.config);
-        const file_data = fs.readFileSync(`${this.dir}/${this.file}`, { encoding: 'utf8', flag: 'r' }).toString().replace(/\r\n/g, '\n').split('\n');
-        for (let line of file_data) {
-            line = line.toLowerCase();
-            for (let key of keys) {
-                // converts regex string from config.json to a regex expression
-                const regex = new RegExp(this.config[key]);
-                this.results[key] += ((_a = line.match(regex)) === null || _a === void 0 ? void 0 : _a.length) || 0;
-            }
+    determineText(phrase, attribute) {
+        if (this.line.includes(phrase)) {
+            this.calculateResults(attribute);
         }
+    }
+    /**
+    * @function getResults
+    * @description function to get the results
+    */
+    getResults() {
         return this.results;
     }
 }

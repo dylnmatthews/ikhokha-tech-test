@@ -6,9 +6,8 @@ const cpus = require('os').cpus().length;
 const cluster = require('cluster');
 const CommentAnalyzer_1 = require("./CommentAnalyzer");
 const dir = './docs';
-const config = fs.readFileSync('config.json', { encoding: 'utf8', flag: 'r' }).toString();
 let shownOutput = false;
-let results = JSON.parse(config);
+let results = {};
 let counter = 0;
 /**
  * @function main
@@ -21,9 +20,17 @@ const main = () => {
     const filesByCPU = targetFiles.filter((_value, index) => index % cpus === cluster.worker.id - 1);
     let result = [];
     for (let file of filesByCPU) {
-        const commentAnalyzer = new CommentAnalyzer_1.CommentAnalyzer(file);
-        commentAnalyzer.setConfig(config);
-        result.push(commentAnalyzer.analyze());
+        const file_data = fs.readFileSync(`${dir}/${file}`, { encoding: 'utf8', flag: 'r' }).toString().replace(/\r\n/g, '\n').split('\n');
+        const commentAnalyzer = new CommentAnalyzer_1.CommentAnalyzer();
+        for (let line of file_data) {
+            commentAnalyzer.setLine(line);
+            commentAnalyzer.determineShorterThan(15, 'SHORTER_THAN_15');
+            commentAnalyzer.determineText('mover', 'MOVER_MENTIONS');
+            commentAnalyzer.determineText('shaker', 'SHAKER_MENTIONS');
+            commentAnalyzer.determineText('?', 'QUESTIONS');
+            commentAnalyzer.determineText('http', 'SPAM');
+        }
+        result.push(commentAnalyzer.getResults());
     }
     return { 'result': result, 'fileLength': targetFiles.length };
 };
@@ -39,8 +46,11 @@ const calculateResults = (childResults) => {
             //loops through each child by thread and amend key values 
             for (const child of childResults.result.result) {
                 counter++;
-                for (const [key, value] of Object.entries(child)) {
-                    results[key] += value;
+                for (const key of Object.keys(child)) {
+                    if (!Object.keys(results).includes(key)) {
+                        results[key] = 0;
+                    }
+                    results[key] += child[key];
                 }
             }
             //determine if every file has been read and that the output hasn't occurred because of concurrent threads being run
